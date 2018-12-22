@@ -1,0 +1,256 @@
+\documentclass[a4paper]{article}
+
+%% Language and font encodings
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+%% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+\usepackage[toc,page]{appendix}
+
+%% Listings package
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\title{Convergent: an open source, extensible cryptoeconomic social network}
+\author{Convergent Team <logan@convergent.cx>}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Convergent is an open source social network, fundraising platform, and cryptoeconomic system that rewards active and honest participation in the trading of real world services. Each individual profile is a personal economy consisting of a unique cryptoeconomic token linked to services offered, digital goods produced, or the attention given by the individual. Through the use of bonding curves, the platform enables frictionless investment into these personal economies as both a means of fundraising for the creator as well as a being a speculative game for a contributor which seeks a financial return. A native network token is used to reward frequent and high-quality participation by creators and allow for purchase of an access token to include third party extensions onto the platform. The network token is able to be staked into a bonding curve to generate a governance token used to vote on the direction of the Convergent decentralized organization, enabling the sustainability of the Convergent project long-term.
+\end{abstract}
+
+\section{Introduction}
+
+Satoshi Nakamoto disrupted the global financial institutions with the creation of the peer-to-peer and trustless money system known as Bitcoin \cite{bitcoin}. The innovations of Bitcoin were highly fecund in the technological potentials it opened to the world. It demonstrated that cryptographic proofs and verification provided strong ownership control of digitally scarce resources and assets. More significantly, it solved the double-spend problem by way of a public peer-to-peer network that ran under a computationally hard consensus algorithm and constructed a shared data ledger using hashing schemes. The solution came to be known as public blockchain technology. 
+
+	As time progressed, the underlying technology of the Bitcoin network interested developers to a degree that two phenomenons began to occur. One, developers forked the Bitcoin source code and began to launch their own networks thereby creating the vast altcoin ecosystem and two, application developers started to tinker with the scripting language of Bitcoin to design more complex systems. The emergence of these applications eventually led Vitalik Buterin to invent the Ethereum protocol, an abstract foundational blockchain layer in which provides developers a Turing-complete programming language in which to write smart contracts \cite{ethereum}.
+    
+    
+    
+    These innovations have paved the way for the next wave of cryptoeconomic networks: the social...
+
+\section{How Convergent Works}
+
+	Convergent is composed of three main building blocks: a platform, a protocol, and a marketplace of extensions. As time progresses, the organizational structure itself will become a fourth component of the network as the project decentralizes itself into the Convergent ADO. 
+
+\subsection{Convergent platform}
+
+	The main functions of the Convergent platform are 1) to allow individuals to launch their token economies, 2) allow for contributors to browse, search, discover and invest into these personal economies, 3) to purchase and transact services offered for personal tokens, and 4) to aggregate discussion and feeds through curation markets mechanisms.
+
+	Convergent is a platform for launching personal tokens which are generated from an automated market maker known as a bonding curve. These personal tokens are fungible and compliant to the ERC20 standard. The distinction of these tokens is that they are generated  through a continuous sale mechanism along a determined price path. As the total supply of the token supply grows (represented by the x-axis on visual A) the price will increase (price is represented by the y-axis).
+    
+	When a contributor purchases a token from a creator’s personal economy, the amount that they will pay in the reserve assets is split in a pre-defined percentage amount between being sent to the creator directly and being captured into the contract. As the reserve grows, the amount that the contract will pay out when a contributor sells their token back to it will also increase, which is the mechanism that incentivizes early discovery and participation from contributors. 
+
+To imagine this it’s best to take an example: Alice sets her economy to be a 60-40 split in which 60\% of all contributions are sent to her and 40\% stays in the contract. When Bob would like to contribute, he sends 100 Dai and receives 5 Alice Token back at the current price of 20 DAI each. 60 Dai will be sent to Alice directly, and 40 dai will be kept as reserve in the contract. In order for Bob to realize a return on his investment, he would need to wait until later contributors enter the economy and tokens are spent. Let’s imagine a few more contributors enter and the price to sell the tokens become 30 DAI, Bob can sell one or all of his tokens back to the contract to make a total of 150 DAI directly from the reserves held in the contract.
+
+\subsection{Convergent protocol}
+
+Beneath the Convergent platform sits a smart contract protocol. The smart contract protocol handles the deployment of cryptoeconomic tokens, requests of services, access control rights, curation mechanisms, and dispute resolutions of the network. 
+
+The core piece is the Personal Economy smart contract, which will be deployed for each creator on the network.
+
+\begin{lstlisting}
+/* IPersonalEconomy.sol */
+
+interface IPersonalEconomy is Ownable {
+
+	// Standard event for communication of service requests.
+	event Request(string message, address indexed requestor, uint256 timestamp);
+    
+    // The content address for the metadata hosted on IPFS.
+    bytes32 public mHash;
+    
+    // Function to request a service, will send a token to escrow and emit the Request event.
+    function request(string message, uint256 price) external payable returns (bool success);
+    
+    // Owner function to update the metadata content address.
+    function updateData(bytes32 newHash) onlyOwner external returns (bool success);
+}
+\end{lstlisting}
+
+The personal economy contract will extend the standard bonding curve contract, which the Convergent team will post as an ERC and is currently available as draft here \url{https://hackmd.io/eNwnXf02QuWC9EzyWBtv8g?view}
+
+The personal economies are deployed through a \texttt{PersonalEconomyFactory} contract which needs to exist due to requirement that we have some on-chain way to track all of the economies.
+
+A personal token is compliant with the ERC20 standard. However, we leverage the cryptographic ownership properties of tokens to use them as access tokens for exclusive content released by the creator. By validating the signature on a unique message we can grant a browser using an address the view privileges of the exclusive personal community zone for a personal economy. This does not provide a full guarantee of the secrecy of the content, since it would be trivial for someone to buy the minimum amount of access tokens and then to leak the content. However, we believe in most cases that the incentives will align so that leaks will be rare and do minimal damage. Besides, legacy systems such as Patreon work in this way and harmful leaks of the content are unheard of by us. (Full discussion of this and other "Grief Attacks" to be explored in a future section).
+
+\subsection{Convergent Extensions and Marketplace (Expanse)}
+
+One major advantage of being an open source platform and network is that it will be possible to extend the functionalities available to creators to help monetize and stimulate their economy. 
+
+The first prototype of the Convergent platform allows the user to fill in the blank for what services they would like to offer. Then all of the burden for the follow through of these services fall onto the creator. There is no tools to facilitate the services, just messages being sent and tokens exchanged.
+
+We plan to change this with the marketplace of extensions we call the Convergent Expanse. In overview, Expanse is the library of front-end add-ons and extensions to the platform which will be chosen and curated by the creator of the personal economy ...
+
+\subsection{Convergent ADO}
+
+Decentralized autonomous organizations are seen as one of the killer applications of blockchains after money. Convergent is an ambitious project and will not be able to sustain itself long term without a community which governs and maintains it. As truly autonomous organizations have been criticized in the same light as general artificial intelligence in regard to its ability to misinterpret its inputs and produce misplaced effects [ source needed ], we are taking a different approach to the Convergent decentralized organization.
+
+	\textit{Adapative Decentralized Organizations} (ADOs) were first proposed by Johann Barbie of LeapDAO in a HackMD file here [ source needed ]. The general idea is that the autonomous descriptor for DAOs is inaccurate for software projects in particular because software projects require human inputs to create the code, produce the ideas, and even for the vision and direction itself. In traditional firms and corporations, a hierarchy is formed in which the direction of the firm is dictated top-down from a central CEO or board of directors. Holacracy, in comparison attempts to create a more holistic organizational process by [ detail needed here ]. Adaptive decentralized organizations combine holacracy organizational practices with blockchain technology to give voice to the governance token holders as well as to direct a team, or multiple teams, through the development arcs of software products. We believe several cryptocurrency organizations are already being ran like this, some notable examples being the Monero research grants which are voted on through contributions [ source needed ] and the Aragon project which will hold a vote to grant funding to the founding team of developers to continue with their development [source needed ]. Convergent's most innovation contributions to this area will be through the formalization and implementation in these governance processes and then the direct dog-fooding of these in a planned transition to a fully decentralized organization controlled by stakeholders.
+
+\section{The Tokens of Convergent}
+
+Cryptoeconomic networks are able to coordinate participants by designing and aligning incentives to accomplish more efficient goals [ source needed ]. In the case of the Convergent network the tokens are used to incentive active and honest participation by the creators. The network token is also used as the reserve currency for which Expanse (the third party marketplace of extensions) developers can purchase the NFTs representing inclusion in the official platform, and is the currency by which the tax for these NFTs will be paid in. As the project matures and moves toward its goal of a decentralized organizational structure the same network token will be able to be staked into a bonding curve to generate a governance token. The governance token would then hold weight in determining the development directions of the Convergent ADO as well as vote on network parameters and protocol upgrades. 
+
+\subsection{Convergent Network Token (CNX)}
+
+The Convergent Network Token (ticker: CNX) will be generated in a 2-phased generation event and then minted continuously by a smart contract and rewarded as inflation to active participants on the network. 
+
+The CNX token would be used by the Expanse developers as a means for inclusion of their third party extension into the official platform. Expanse NFTs would be minted along a bonding curve for a total supply of 100. Each of these NFTs would enable the access of a chosen extension into the Expanse marketplace. CNX holders would then curate the top extensions in a TCR-like fashion. 
+
+When the 100 slots of Expanse NFTs are sold out, the owners of the NFTs will be required to place a valuation of their NFT and begin to pay a Harberger tax in CNX on their valuations. The CNX would be distributed to the Convergent ADO pool of funds and would be voted on by the CGX holders to determine what to do with (whether this means to burn it, distribute it, or sell it). 
+
+\subsection{Expanse NFTs}
+
+The Expanse NFTs will be non-fungible tokens of a total supply of 100. The NFT would act as an access token to inclusion of the Convergent platform of a third-party extension. As these third-party extensions are seen as monetizable through implementation of fee models[ cite your article ] or otherwise, a tax must be paid routinely to maintain the NFT.
+
+The Harberger tax model that will be used for Expanse NFTs is in the process of being formalized for inclusion here. For now a summary thereof: 
+
+\subsection{Convergent Governance Token (CGX)}
+
+The Convergent Governance Token (ticker: CGX) will be generated by staking CNX and locking it up for some period of time in order to activate voting rights of holdings. The lock period is intended as an opportunity cost to incentive long-term decision making by the CGX stakeholder. 
+
+As far as the exact voting procedures we are most interested in a concept being referred to as adaptive decentralized organizations. The general idea is that a core team is formed and operated following holacracy practices. CGX holders would vote on how funds were spent including paying out salaries of this core team. Also, taken from the original draft of the idea is the notion of Tension TCRs which would be voted on by the token holders in order to prioritize the tensions which are most bothering.
+
+\section{Themes and Topics}
+
+\subsection{Personal Tokens and Personal Economies}
+
+A personal token is a cryptoeconomic coin which is linked to an individual’s work, time, attention, future, or other subjective asset. We further define a personal economy as the automated market maker smart contract which generates and destroys the token along a price curve as well as a suite of offerings the individual has made available. 
+
+The simplest kind of service an individual could offer in exchange for their personal token is a paywalled email or paywalled block of time for a video conference meeting. Similar to the model pioneered by Earn.com[source needed], Alice could launch her personal economy on Convergent and require 1 ALICE coin for each message sent to her, only paying it out if a response is sent. Similarly, we envision a Calendly clone[source required] as one of the first extensions the central team will build for Expanse, and which will enable individuals to offer blocked out portions of their weekly schedules to take meetings. Alice may require 5 ALICE coin in order to book a 30-minute consultation with her about her field of expertise. Since Alice already works full-time as a freelance consultant she doesn’t want to shift all of her business to this new and radical monetization model yet -- so she dips her toes in the water and begins by offering two hours every week, say 1400 - 1600 on Tuesdays and is able to make an additional income while stimulating her economy.
+
+Another kind of service which can be offered for a personal token is an access service. ALICE coin could be used as a requirement to access Alice’s exclusive content which she hosts on her access-controlled section of the Convergent platform. It is possible to use token balances as an access control mechanism for these portions of the platform \url{https://github.com/okwme/eac-chat}. [ALSO EXPLAIN IN TECHNICAL DETAIL HERE]
+
+\subsection{Emergent Reputation and Identity}
+
+As economies are created and used to represent an individual’s time, attention, or work, they will begin to have an emergent reputation score. Similar to the Seller Ratings of Ebay \url{https://www.ebay.com/help/buying/resolving-issues-sellers/seller-ratings?id=4023} each economy would have a Reputation Rating based on feedback, success rate, and frequency / recency of services activity. The reputation will be uniquely tied to the Ethereum address associated with the personal economy smart contract. To help make each economy more human-readable we have registered the convergent-id.eth ENS name and intend to allow users to choose their unique subdomain handle on creation of the economy. For example, if Logan a smart contract engineer wanted to launch an economy to begin selling his consultations services he could register lms.convergent-id.eth assumening it was available. In the front-end we then could represent this without even the trailing convergent-id.eth, since it would be assumed, and simply display the unique, cryptographically verified handle of \$lms. 
+
+\subsection{System Reserve Currency}
+
+The Convergent ecosystem will use the Dai stablecoin [ source needed ] as its system reserve currency. All services will be priced in a personal token that is generated from a bonding curve that holds Dai reserve. Since Dai itself is backed by ether (in the current single collateral version) it means that for now ether is the reserve currency of the entire system, but when Dai moves to its multi-collateral version there will be a basket of goods backing the stability of the reserves in the Convergent personal economies.
+
+\subsection{Curation Markets Mechanism}
+
+At a high level, the entire Convergent network itself is a curation market mechanism since the most popular economies would be curated through being imbued with the most amount of the reserve currency and have the highest market capitalization. 
+
+\subsection{The Problem with Fiat Conversion}
+
+One problem with the mainstream adoption of cryptocurrency networks and decentralized applications is the reliance on converting fiat currencies into cryptocurrencies before being able to interact with and explore the systems. If a person wants to use the Convergent platform for instance, they would first need to download MetaMask and learn how to manage a private key. Only after learning this arcane knowledge is it possible for a new user to start using the platform. 
+
+On the Convergent platform, it is intended to provide a role for new users on the system to earn cryptocurrency by an act of curation. New users known as the curators are able to vote on economies and their activity. Through their act of curation, by being vouched by CNX holders, they will slowly earn enough cryptocurrency until they are able to launch their own profile and thereby bootstrap their entrance into the crypto world.
+
+\subsection{Schelling Point}
+
+A schelling point is a focal point that people tend to use in absence of communication because it seems natural, special, or relevant to them \url{https://en.wikipedia.org/wiki/Focal_point_(game_theory)}. The Convergent platform will emerge as a schelling point of social network applications for web3 because it is the foundations for the individual’s entrance into the internet of money: their own currency. Since it is open source and expansive, it also will attract developers to build on top of it (just as Ethereum paved the way for developers to build decentralized applications and cryptoeconomic networks like Convergent itself).
+
+\subsection{Tokens as Information}
+
+Zargham proposes that tokens are means of carrying information:
+\begin{quotation}
+Tokens are capturing and carrying information about the actual value being provided by the network to consumers in the form of some services or in the form of enabling some services being provided from one party to another... only if the information you're capturing comes from the system itself... If its capturing information inside the system and you're using that information to better distribute value, then it makes sense.
+\end{quotation}
+
+\url{https://youtu.be/SooDvvrXYNw?t=233}
+
+\subsection{Scalability Concerns}
+
+Convergent builds its platform on Ethereum for now because Ethereum has the highest magnetism to the developer ecosystem, high interoperability among tools and protocols, and an optimistic and open culture which we share. However, there are legitimate concerns over the future scalability of the Ethereum blockchain especially for end-user applications [ link cryptokitties ]. Therefore, we are keeping our eye on potential competitors that could offer us solutions to these problem out of the box such as Polkadot, Cosmos, Tezos, or EOS. We believe we can go far building on Ethereum, and reamin optmistic for ETH 2.0. In the meantime we consider using Plasma construction where each economy (read token) is its own plasma chain or zkSnark batch-transaction construction [ source needed ]. The main issues with either of these solutions is that they would imply centralization trade-offs and increased complexity as operators are now required for committing plasma roots or the zkSnark proofs. 
+
+\subsection{Dispute Resolution}
+
+The vanilla flavor of the Convergent platform does not make any claims or holds any responsibility over who uses it and for what purpose. However, it is foreseen that some users may only want to use the platform to transact services with people with some guarantee of dispute resolution. Dispute resolution on the blockchain is a notoriously hard problem as the ability to regulate pseudonymous identities in a permissionless network is an unsolved problem. There are promising projects in the space such as Kleros \url{https://kleros.io/assets/whitepaper.pdf} which Convergent may integrate with at some level to provide a dispute resolution layer in an opt-in manner to some participants. Another idea is that Convergent will at some point set up a centralized subsidiary to perform KYC and “real-world” verifications that would be visibly displayed on these profiles. These verifications can become one of the attributions which can be assigned to both investors and creators. The dispute resolutions would then be handled through more traditional means on this subset of all participants.
+
+\begin{thebibliography}{1}
+
+\bibitem{bitcoin} https://bitcoin.org/bitcoin.pdf
+\bibitem{ethereum} https://github.com/ethereum/wiki/wiki/White-Paper
+
+\end{thebibliography}
+
+\begin{appendices}
+
+\section{Bonding Curve Variations}
+
+\subsection{Spread}
+
+\[Payout = \sum_{\forall BuyTx} \left [ \int_{x_{1}}^{x_{2}}(buy(x)-sell(x))dx \right ]\]
+
+\subsection{Fee}
+
+\[Payout = \sum_{\forall Tx} \left [ \int_{x_{1}}^{x_{2}}(buy(x)-sell(x))dx \right ] \approx \sum{\forall Tx} \left [ \int_{x_{1}}^{x_{2}}(2 \times fee(x))dx \right ]\]
+
+\subsection{Pre-Mint}
+
+\[Payout = n \times p(m) - \int_{0}^{n} p(x) dx\]
+
+\section{Terms and Definitions}
+
+\subsection{Roles}
+
+\textbf{Contributor} - The class of user who browses, discovers, invests, and contributes to personal economies. 
+\medskip
+
+\noindent
+\textbf{Creator} - The class of user who launches a personal economy and offers services, goods, or attention in exchange for their personal cryptoeconomic token.
+\medskip
+
+\noindent
+\textbf{Curator} - The person who curates aggregated tag zones and the personal economies, earning rewards for doing so.
+\medskip
+
+\noindent
+\textbf{Transactor} - The person who uses the token in a personal economy to access goods, services, or attention from the creator. 
+
+\subsection{Concepts}
+
+\textbf{Bonding Curve} - A cryptoeconomic primitive that controls the supply of a token and determines the price of the token in relation to a reserve asset. Also known as an automated market maker. 
+\medskip
+
+\noindent
+\textbf{Curation Market} - 
+\medskip
+
+\noindent
+\textbf{Personal Economy} - The personal cryptoeconomic token of a creator, the automated market maker this token is generated and destroyed from, and the goods and services the person has made available in exchange for their token.
+
+\section{Prior Art}
+
+The idea of personal tokens was first discussed publicly by Simon de la Rouvière in a late 2013 blog post,  In the future, everyone will have their own cryptocurrency[2]. Inspired by Dogecoin[3] and the ability for a meme to concentrate a strong network effect, the blog post explores two thought experiments for how economies could from around the public figures of Justin Bieber and Nelson Mandela. As good deeds and valuable services would be offered in these economies, the actions would reverb and create network effects that would inherently create more wealth to that person. Alternatively, if a person acts dishonestly (like Zuma in the blog post) then their network wealth would be “voted” down due to the liquidation of their coin.  Simon’s own personal cryptocurrency, Simoncoin[4] was planned but ultimately ran into doubts over the technical approach and never appears to have reached the light of day.
+
+	Throughout the years since, certain individuals have attempted the idea with varying levels of success. In 2014, Tatiana Moroz, a recording artist from New York launched Tatiana Coin (TAT) as the first “Artist Coin” which was launched on Counterparty, still sees approximately \$2,000 in daily volume as of December 2018, and with the purpose to raise funds for recording and production of her third album [5,6,7]. In 2015, Sarah Meyohas, a photographer and artist, teamed up with a Brooklyn gallery to launch Bitchcoin a token tied to 25 square inches of her prints[8]. 
+
+\end{appendices}
+
+\end{document}
