@@ -1,6 +1,6 @@
 # whitepaper
 
-Contains the LaTeX source and exported pdf of the Convergent whitepaper.
+Contains the LaTeX source and pdf of the Convergent whitepaper.
 
 ## Translations
 

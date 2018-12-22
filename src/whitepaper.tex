@@ -63,7 +63,7 @@ Convergent arises as a smart contract protocol to repair these issues. It aims t
 
 \section{Components of Convergent}
 
-Convergent is composed of three main building blocks: a platform, a protocol, and an extensions ecosystem. As time progresses, the organizational structure itself will become a fourth component of the network as the project transitions to a decentralized organization. 
+Convergent is composed of three main components: a platform, a protocol, and an extensions ecosystem. As time progresses, the organizational structure itself will become a fourth component of the network as the project transitions to a decentralized organization. 
 
 \subsection{Platform}
 
@@ -112,9 +112,11 @@ A personal token is compliant with the ERC20 standard. However, we leverage the 
 
 One major advantage of being an open source platform and network is that it will be possible to extend the functionalities available to creators to help monetize and stimulate their economy. 
 
-The first prototype of the Convergent platform allows the user to fill in the blank for what services they would like to offer. Then all of the burden for the follow through of these services fall onto the creator. There is no tools to facilitate the services, just messages being sent and tokens exchanged.
+The first prototype of the Convergent platform allows the user to fill in the blank for what services they would like to offer. This is far from ideal as it puts all of the burden for transacting these services on the shoulders of the creator. There will need to be tools and plug-ins which facillitate certain high traffic use cases.
 
-We plan to change this with the marketplace of extensions we call the Convergent Expanse. In overview, Expanse is the library of front-end add-ons and extensions to the platform which will be chosen and curated by the creator of the personal economy ...
+The Expanse section of the network will be a third party extensions marketplace for which creators can browse and choose their services plug-ins. Some ideas for what popular extensions may be include: 1) a calendly clone that makes it easy to schedule meetings, 2) a streamlined way for artists to issue NFTs representing deeds for pieces of their art, 3) an exclusive community chat room where only holders of a token may read and only holders of a lot of tokens can post to get the creator's attention. 
+
+The preceding are some preliminary ideas which we will likely develop ourselves as the first extensions, but we envision Expanse as one of the core ways to find monetization streams on the platform by us and third parties. Each extensions could have its own business model, whether this means its a fee or a monthly subscription. Due to the nature of the network these extensions may not themselves need to be open source but would require a process of curation and quality assurance. The solution to these problems are the ecosystem NFTs, which is discuessed in a later section.
 
 \subsection{Governance}
 
@@ -215,11 +217,19 @@ The spread curve is also known as the double curve. It is named so because there
 
 \[Payout = \sum_{\forall BuyTx} \left [ \int_{x_{1}}^{x_{2}}(buy(x)-sell(x))dx \right ]\]
 
+\subsubsection{Divergent, Convergent, and Constant Spreads}
+
+Further varieties of the spread curve may see the spread increasing, decreasing or remaining constant as \texttt{x} increases. These are defined as divergent spread curves, convergent spread curves, or constant spread curves respectively.
+
 \subsection{Fee}
+
+The fee curve is also known as the premium model curve. It simple adds a small fee on top of all buy or sell operations in the curve. The payout of a curve using a premium model is the summation of the fee for all transactions. The fee for buying and selling from the curve could be defined as different constants.  
 
 \[Payout = \sum_{\forall Tx} \left [ \int_{x_{1}}^{x_{2}}(buy(x)-sell(x))dx \right ] \approx \sum{\forall Tx} \left [ \int_{x_{1}}^{x_{2}}(2 \times fee(x))dx \right ]\]
 
 \subsection{Pre-Mint}
+
+The pre-mint is a curve in which some amount of tokens have been minted on deployment and therefore are not covered by the reserves held. The payout in this model is the amount from selling all of the tokens at price \texttt{m} minus the amount that needed to be put into the curve to fill in the missing reserves from \texttt{0} to \texttt{p(x).}
 
 \[Payout = n \times p(m) - \int_{0}^{n} p(x) dx\]
 
